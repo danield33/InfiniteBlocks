@@ -5,6 +5,7 @@ import org.bukkit.entity.Player
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.inventory.InventoryClickEvent
+import org.bukkit.event.inventory.InventoryCloseEvent
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
 import org.bukkit.plugin.Plugin
@@ -51,6 +52,13 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
                     currButton.execute(player);
                 }
             }
+        }
+    }
+
+    @EventHandler
+    fun onInvClose(event: InventoryCloseEvent){
+        if(this.guiOpen.containsKey(event.player.uniqueId)){
+            this.guiOpen.remove(event.player.uniqueId);
         }
     }
 
