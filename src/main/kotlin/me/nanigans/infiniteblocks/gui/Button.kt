@@ -1,12 +1,13 @@
 package me.nanigans.infiniteblocks.gui
 
+import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
-import java.util.function.Consumer
+import kotlin.reflect.KFunction2
 
-class Button(val item: ItemStack, private val callback: (ItemStack) -> Unit, val playSound: Boolean){
+class Button(val item: ItemStack, private val callback: (ItemStack, Player) -> Unit, val playSound: Boolean){
 
-    fun execute(){
-        this.callback.invoke(this.item);
+    fun execute(player: Player){
+        this.callback.invoke(this.item, player);
     }
 
 }
