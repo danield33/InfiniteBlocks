@@ -14,16 +14,12 @@ import kotlin.collections.HashMap
 
 class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
 
-    var pageNum: Int = 0
-    set(value){
-        field = 0.coerceAtLeast(pages.size.coerceAtMost(value));
-    };
-
     var pages: Array<Page> = pagesArr
     private set
 
     private var currInventory: Inventory? = null;
     private val guiOpen: HashMap<UUID, Int> = HashMap();
+    private val whoClicked: HashMap<UUID, Boolean> = HashMap();
 
     init{
         plugin.server.pluginManager.registerEvents(this, plugin);
@@ -47,9 +43,11 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
                 event.isCancelled = true;
                 val currButton: Button? = this.pages[this.guiOpen[uuid]!!].buttons[event.slot];
                 if(currButton != null){
+                    this.whoClicked[player.uniqueId] = true;
                     if(currButton.playSound)
                         player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f);
                     currButton.execute(player);
+                    this.whoClicked[player.uniqueId] = false;
                 }
             }
         }
@@ -57,7 +55,9 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
 
     @EventHandler
     fun onInvClose(event: InventoryCloseEvent){
-        if(this.guiOpen.containsKey(event.player.uniqueId)){
+        if(this.guiOpen.containsKey(event.player.uniqueId)
+            && this.whoClicked.containsKey(event.player.uniqueId)
+            && this.whoClicked[event.player.uniqueId] != true){
             this.guiOpen.remove(event.player.uniqueId);
         }
     }
