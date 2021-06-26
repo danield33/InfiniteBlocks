@@ -1,29 +1,18 @@
 package me.nanigans.infiniteblocks.gui
 
 import me.nanigans.infiniteblocks.InfiniteBlocks
-import org.bukkit.Bukkit
 import org.bukkit.ChatColor
 import org.bukkit.Material
 import org.bukkit.entity.Player
-import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.ItemMeta
 
 class Shop {
 
     companion object{
 
-        private fun openItem(item: ItemStack, player: Player){
+        private fun getPurchasePage(): Page{
 
-            val inventory: Inventory = Bukkit.createInventory(player, 27, "Purchase ${item.type}");
-            val itemClone = item.clone()
-            val itemMeta = itemClone.itemMeta;
-            val listOf: List<String> = listOf("Amount: 64")
-            if (itemMeta != null) {
-                itemMeta.lore = listOf
-            };
-            itemClone.itemMeta = itemMeta;
-            inventory.setItem(13, itemClone);
+            val page: Page = Page("Purchase", 27);
 
             var position: Int = 9;
             for(j in 1..2) {
@@ -40,8 +29,8 @@ class Shop {
                         itemMeta1.setDisplayName("${ChatColor.BOLD}${i}");
                         itemStack.itemMeta = itemMeta1;
                     };
-
-                    inventory.setItem(position, itemStack);
+                    
+                    page.addButton(position, Button(itemStack, {player -> println(player.name)}, true))
                     i /= 5;
                     position++;
                     if(position == 13)
@@ -49,13 +38,23 @@ class Shop {
                 }
             }
 
-            player.openInventory(inventory);
+            return page;
+        }
+
+        fun openItem(shopGUI: ShopGUI, player: Player, itemStack: ItemStack){
+
+            shopGUI.pages[shopGUI.pages.size-1].addButton(13,
+                Button(itemStack, {player -> println(player) }, true));
+
+            shopGUI.open(player, shopGUI.pages.size-1);
 
         }
 
         fun setupShopInventory(): ShopGUI{
 
-            val pages: MutableList<Page> = mutableListOf();
+            val pages: ArrayList<Page> = arrayListOf();
+            val shopGUI = ShopGUI(pages, InfiniteBlocks.instance);
+
             var page: Page = Page("Shop", 54);
             var i: Int = 0;
             for (material in Material.values()) {
@@ -63,10 +62,11 @@ class Shop {
                 if(material.isBlock && !material.isAir && !material.isLegacy){
 
                     if(i < 45){
-                        page.addButton(i, Button(ItemStack(material), ::openItem, true));
+                        val item = ItemStack(material)
+                        page.addButton(i, Button(item, { player -> this.openItem(shopGUI, player, item) }, true));
                     }else{
                         i = -1;
-                        pages.add(page);
+                        shopGUI.pages.add(page);
                         page = Page("Shop", 54);
                     }
 
@@ -75,7 +75,6 @@ class Shop {
             }
             if(i < 45) pages.add(page);
 
-            val shopGUI = ShopGUI(pages.toTypedArray(), InfiniteBlocks.instance);
 
             shopGUI.pages.forEach { page ->
                 run {
@@ -90,6 +89,8 @@ class Shop {
                     page.addButton(53, Button(itemStack, shopGUI::pageForward, true));
                 }
             }
+
+            shopGUI.pages.add(this.getPurchasePage());
 
             return shopGUI;
 

@@ -12,13 +12,13 @@ import org.bukkit.plugin.Plugin
 import java.util.*
 import kotlin.collections.HashMap
 
-class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
+class ShopGUI(pagesArr: ArrayList<Page>, plugin: Plugin): Listener {
 
-    var pages: Array<Page> = pagesArr
+    var pages: ArrayList<Page> = pagesArr
     private set
 
     private var currInventory: Inventory? = null;
-    private val guiOpen: HashMap<UUID, Int> = HashMap();
+    val guiOpen: HashMap<UUID, Int> = HashMap()
     private val whoClicked: HashMap<UUID, Boolean> = HashMap();
 
     init{
@@ -29,7 +29,6 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
         if(pageNum <= this.pages.size-1){
             this.guiOpen[player.uniqueId] = pageNum;
             val inv: Inventory = this.pages[pageNum].build();
-            this.currInventory = inv;
             player.openInventory(inv);
         }
     }
@@ -42,12 +41,14 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
             if(this.guiOpen.containsKey(uuid)){
                 event.isCancelled = true;
                 val currButton: Button? = this.pages[this.guiOpen[uuid]!!].buttons[event.slot];
+
                 if(currButton != null){
                     this.whoClicked[player.uniqueId] = true;
                     if(currButton.playSound)
                         player.playSound(player.location, Sound.UI_BUTTON_CLICK, 1f, 1f);
                     currButton.execute(player);
                     this.whoClicked[player.uniqueId] = false;
+
                 }
             }
         }
@@ -62,7 +63,7 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
         }
     }
 
-    fun pageForward(item: ItemStack, player: Player){
+    fun pageForward(player: Player){
         var page = this.guiOpen[player.uniqueId]?.plus(1);
         if (page != null) {
             if(page >= this.pages.size)
@@ -72,7 +73,7 @@ class ShopGUI(pagesArr: Array<Page>, plugin: Plugin): Listener {
         }
     }
 
-    fun pageBackwards(item: ItemStack, player: Player){
+    fun pageBackwards(player: Player){
 
         var page = this.guiOpen[player.uniqueId]?.minus(1);
         if (page != null) {

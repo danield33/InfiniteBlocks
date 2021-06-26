@@ -1,6 +1,7 @@
 package me.nanigans.infiniteblocks
 
 import me.nanigans.infiniteblocks.commands.Shop
+import me.nanigans.infiniteblocks.gui.GUIManager
 import me.nanigans.infiniteblocks.gui.ShopGUI
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -10,6 +11,7 @@ class InfiniteBlocks(): JavaPlugin() {
 
     companion object{
         lateinit var instance: InfiniteBlocks;
+        val shopManager: GUIManager = GUIManager();
     }
 
     init{
