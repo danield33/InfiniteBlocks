@@ -15,10 +15,10 @@ class Shop {
             val page: Page = Page("Purchase", 27);
 
             var position: Int = 9;
-            for(j in 1..2) {
+            for(j in -1..1 step 2) {
 
                 var i: Int = 5000;
-                val material: Material = if(j == 1) Material.RED_STAINED_GLASS_PANE
+                val material: Material = if(j == -1) Material.RED_STAINED_GLASS_PANE
                                             else Material.LIME_STAINED_GLASS_PANE
 
                 while (i > 20) {
@@ -29,8 +29,9 @@ class Shop {
                         itemMeta1.setDisplayName("${ChatColor.BOLD}${i}");
                         itemStack.itemMeta = itemMeta1;
                     };
-                    
-                    page.addButton(position, Button(itemStack, {player -> println(player.name)}, true))
+
+                    page.addButton(position, Button(itemStack,
+                        {player -> InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId]?.addAmount(i * j)}, true))
                     i /= 5;
                     position++;
                     if(position == 13)
@@ -43,9 +44,14 @@ class Shop {
 
         fun openItem(shopGUI: ShopGUI, player: Player, itemStack: ItemStack){
 
+            val clone = itemStack.clone();
+            val itemMeta = clone.itemMeta;
+            itemMeta?.lore = arrayListOf("Amount: 64");
+            clone.itemMeta = itemMeta;
             shopGUI.pages[shopGUI.pages.size-1].addButton(13,
-                Button(itemStack, {player -> println(player) }, true));
+                Button(clone, {player -> println(player) }, true));
 
+            InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId] = PurchasingItem(itemStack, 64);
             shopGUI.open(player, shopGUI.pages.size-1);
 
         }
