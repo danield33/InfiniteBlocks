@@ -3,14 +3,16 @@ package me.nanigans.infiniteblocks.gui
 import me.nanigans.infiniteblocks.InfiniteBlocks
 import org.bukkit.ChatColor
 import org.bukkit.Material
+import org.bukkit.NamespacedKey
 import org.bukkit.entity.Player
 import org.bukkit.inventory.ItemStack
+import org.bukkit.persistence.PersistentDataType
 
 class Shop {
 
     companion object{
 
-        private fun getPurchasePage(): Page{
+        private fun getPurchasePage(shopGUI: ShopGUI): Page{
 
             val page: Page = Page("Purchase", 27);
 
@@ -30,8 +32,14 @@ class Shop {
                         itemStack.itemMeta = itemMeta1;
                     };
 
+                    val iCopy = i;
                     page.addButton(position, Button(itemStack,
-                        {player -> InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId]?.addAmount(i * j)}, true))
+                        {player ->
+                            run {
+                                InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId]?.addAmount(iCopy * j)
+                                this.openItem(shopGUI, player, InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId]!!.item);
+                            }
+                        }, true))
                     i /= 5;
                     position++;
                     if(position == 13)
@@ -42,16 +50,33 @@ class Shop {
             return page;
         }
 
+        fun purchaseItem(player: Player, itemStack: ItemStack){
+
+            val amount = InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId]!!.itemAmount
+            InfiniteBlocks.blockManager.setNBT(itemStack, "itemAmount", PersistentDataType.INTEGER, amount);
+            player.closeInventory();
+            player.inventory.addItem(itemStack);
+
+        }
+
         fun openItem(shopGUI: ShopGUI, player: Player, itemStack: ItemStack){
 
             val clone = itemStack.clone();
-            val itemMeta = clone.itemMeta;
-            itemMeta?.lore = arrayListOf("Amount: 64");
-            clone.itemMeta = itemMeta;
-            shopGUI.pages[shopGUI.pages.size-1].addButton(13,
-                Button(clone, {player -> println(player) }, true));
+            val itemMeta = clone.itemMeta!!;
+            val itemInPurchase = InfiniteBlocks.shopManager.itemInPurchase
 
-            InfiniteBlocks.shopManager.itemInPurchase[player.uniqueId] = PurchasingItem(itemStack, 64);
+            if(itemInPurchase.containsKey(player.uniqueId)){
+                itemMeta.lore = arrayListOf("Amount: ${itemInPurchase[player.uniqueId]!!.itemAmount}")
+            } else {
+                itemMeta.lore = arrayListOf("Amount: 64");
+                itemInPurchase[player.uniqueId] = PurchasingItem(itemStack, 64);
+            };
+
+            clone.itemMeta = itemMeta;
+
+            shopGUI.pages[shopGUI.pages.size-1].addButton(13,
+                Button(clone, {player -> this.purchaseItem(player, clone) }, true));
+
             shopGUI.open(player, shopGUI.pages.size-1);
 
         }
@@ -96,7 +121,7 @@ class Shop {
                 }
             }
 
-            shopGUI.pages.add(this.getPurchasePage());
+            shopGUI.pages.add(this.getPurchasePage(shopGUI));
 
             return shopGUI;
 
